@@ -1,0 +1,23 @@
+# Executables and build artifacts
+/humidity-reminder
+
+# Test binaries
+*.test
+
+# Build directories
+bin/
+build/
+
+# Go module files
+/go.sum
+
+# Configuration overrides
+config.yaml
+
+# IDE/editor junk
+.DS_Store
+.idea/
+.vscode/
+
+# Coverage
+*.out

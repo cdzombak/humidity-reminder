@@ -1,0 +1,11 @@
+latitude: 41.1234
+longitude: -81.5679
+weather:
+  user_agent: "humidity-reminder/1.0 (your-email@example.com)"
+  timeout: "10s"
+mailgun:
+  domain: "mg.example.com"
+  api_key: "key-XXXXXXXXXXXXXXXXXXXXXXX"
+  from: "Humidity Reminder <humidity@example.com>"
+  to: "you@example.com"
+state_dir: "/var/lib/humidity-reminder"
