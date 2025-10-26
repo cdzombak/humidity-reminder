@@ -2,7 +2,7 @@
 
 ## What It Does
 
-`humidity-reminder` watches the National Weather Service (weather.gov) forecast for your location, calculates the recommended indoor relative humidity for the coming week, and emails you via Mailgun whenever that recommendation changes. It keeps a tiny JSON state file so you only get notified when there's something new to do (for example, when the average overnight low drops and you should lower your humidifier setting).
+`humidity-reminder` watches the National Weather Service (weather.gov) forecast for your location, calculates the recommended indoor relative humidity for the coming week, and emails you via Mailgun whenever that recommendation changes. It keeps a tiny JSON state file so you only get notified when there's something new to do (for example, when the median overnight low drops and you should lower your humidifier setting).
 
 ## Installation & Setup
 
@@ -111,27 +111,50 @@ Available flags:
 
 ### Cron Example
 
-I run `humidity-reminder` every morning using [`runner`](https://github.com/cdzombak/runner) so I only get an email when the recommendation moves:
+Run `humidity-reminder` daily to check for changes:
 
 ```text
-HUMIDITY_REMINDER_CONFIG=/etc/humidity-reminder/config.yaml
-00  6  *  *  *  runner -job-name "humidity-reminder" -- humidity-reminder -config "$HUMIDITY_REMINDER_CONFIG"
+0 6 * * * /usr/bin/humidity-reminder -config /etc/humidity-reminder/config.yaml
 ```
 
 Make sure your `state_dir` is writable by whatever user runs the job so the program can remember the last recommendation it sent.
 
-## Development
+### launchd Example (macOS)
 
-- `make build`: Build the binary for the host platform with version metadata.
-- `make all`: Cross-compile for macOS (amd64, arm64) and Linux (amd64, arm64, armv7, armv6).
-- `make package`: Produce Linux binaries plus `.deb` packages using `fpm` (requires `fpm`).
-- `make clean`: Remove the `out/` directory.
-- `make lint`: Run the GitHub Actions lint job locally via `act`.
+Create `~/Library/LaunchAgents/net.cdzombak.humidity-reminder.plist`:
 
-Run tests with:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>net.cdzombak.humidity-reminder</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/humidity-reminder</string>
+        <string>-config</string>
+        <string>/Users/YOUR_USERNAME/.config/humidity-reminder/config.yaml</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardErrorPath</key>
+    <string>/tmp/humidity-reminder.err</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/humidity-reminder.out</string>
+</dict>
+</plist>
+```
+
+Load the job with:
 
 ```shell
-go test ./...
+launchctl load ~/Library/LaunchAgents/net.cdzombak.humidity-reminder.plist
 ```
 
 ## License
