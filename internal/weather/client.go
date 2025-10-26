@@ -76,7 +76,7 @@ func (c *Client) ForecastPeriods(ctx context.Context, lat, lon float64) ([]Perio
 	if err != nil {
 		return nil, fmt.Errorf("do forecast request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("forecast request failed: %s", resp.Status)
@@ -125,7 +125,7 @@ func (c *Client) resolveForecastURL(ctx context.Context, lat, lon float64) (stri
 	if err != nil {
 		return "", fmt.Errorf("do points request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("points request failed: %s", resp.Status)

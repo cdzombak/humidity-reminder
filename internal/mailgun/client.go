@@ -71,7 +71,7 @@ func (c *Client) Send(ctx context.Context, from, to, subject, text string) error
 	if err != nil {
 		return fmt.Errorf("execute mailgun request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 300 {
 		data, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
