@@ -9,9 +9,6 @@ bin/
 build/
 out/
 
-# Go module files
-/go.sum
-
 # Configuration overrides
 config.yaml
 
