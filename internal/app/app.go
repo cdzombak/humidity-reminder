@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"sort"
 	"strings"
 	"time"
 
@@ -35,8 +34,8 @@ func Run(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	medianLow := median(lows)
-	recommended := humidity.RecommendedIndoorHumidity(medianLow)
+	minLow := minimum(lows)
+	recommended := humidity.RecommendedIndoorHumidity(minLow)
 	roundedRecommendation := roundDownToNearestFive(recommended)
 
 	store, err := state.NewStore(cfg.StateDir)
@@ -52,11 +51,11 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	changed := currentState.LastRecommendation == nil || *currentState.LastRecommendation != roundedRecommendation
 
 	if changed {
-		log.Printf("humidity recommendation changed to %d%% (median overnight low %.1f°F)", roundedRecommendation, medianLow)
+		log.Printf("humidity recommendation changed to %d%% (minimum overnight low %.1f°F)", roundedRecommendation, minLow)
 		mailgunClient := mailgun.NewClient(cfg.Mailgun.Domain, cfg.Mailgun.APIKey, httpClient)
 
 		subject := fmt.Sprintf("Indoor Humidity Update: %d%%", roundedRecommendation)
-		body := buildEmailBody(roundedRecommendation, medianLow, lows, currentState.LastRecommendation)
+		body := buildEmailBody(roundedRecommendation, minLow, lows, currentState.LastRecommendation)
 		if err := mailgunClient.Send(ctx, cfg.Mailgun.From, cfg.Mailgun.To, subject, body); err != nil {
 			return fmt.Errorf("send mail notification: %w", err)
 		}
@@ -111,19 +110,17 @@ func toFahrenheit(value int, unit string) (float64, error) {
 	}
 }
 
-func median(values []float64) float64 {
-	sorted := make([]float64, len(values))
-	copy(sorted, values)
-	sort.Float64s(sorted)
-	n := len(sorted)
-	if n == 0 {
+func minimum(values []float64) float64 {
+	if len(values) == 0 {
 		return math.NaN()
 	}
-	middle := n / 2
-	if n%2 == 1 {
-		return sorted[middle]
+	min := values[0]
+	for _, v := range values[1:] {
+		if v < min {
+			min = v
+		}
 	}
-	return (sorted[middle-1] + sorted[middle]) / 2
+	return min
 }
 
 func roundDownToNearestFive(value int) int {
@@ -133,10 +130,10 @@ func roundDownToNearestFive(value int) int {
 	return (value / 5) * 5
 }
 
-func buildEmailBody(newRecommendation int, medianLow float64, lows []float64, previous *int) string {
+func buildEmailBody(newRecommendation int, minLow float64, lows []float64, previous *int) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("The recommended indoor humidity is now %d%%.\n\n", newRecommendation))
-	sb.WriteString(fmt.Sprintf("Median overnight low for the next %d nights: %.1f°F.\n", len(lows), medianLow))
+	sb.WriteString(fmt.Sprintf("Minimum overnight low for the next %d nights: %.1f°F.\n", len(lows), minLow))
 	sb.WriteString(fmt.Sprintf("Forecast overnight lows: %s.\n", formatLows(lows)))
 	if previous != nil {
 		sb.WriteString(fmt.Sprintf("Previous recommendation: %d%%.\n", *previous))

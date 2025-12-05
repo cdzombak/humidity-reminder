@@ -2,7 +2,7 @@
 
 ## What It Does
 
-`humidity-reminder` watches the National Weather Service (weather.gov) forecast for your location, calculates the recommended indoor relative humidity for the coming week, and emails you via Mailgun whenever that recommendation changes. It keeps a tiny JSON state file so you only get notified when there's something new to do (for example, when the median overnight low drops and you should lower your humidifier setting).
+`humidity-reminder` watches the National Weather Service (weather.gov) forecast for your location, calculates the recommended indoor relative humidity for the coming week, and emails you via Mailgun whenever that recommendation changes. It keeps a tiny JSON state file so you only get notified when there's something new to do (for example, when the minimum overnight low drops and you should lower your humidifier setting).
 
 ## Installation & Setup
 
@@ -99,7 +99,7 @@ On each run the program:
 
 1. Fetches the latest forecast periods from weather.gov for your coordinates.
 2. Extracts the next seven overnight low temperatures.
-3. Computes the median overnight low, then converts it to a recommended indoor humidity using `libwx`.
+3. Computes the minimum overnight low, then converts it to a recommended indoor humidity using `libwx`.
 4. Compares that recommendation with the previous value stored in `state_dir/state.json`.
 5. Sends a Mailgun email if the recommendation changed, then stores the new value and timestamp.
 
