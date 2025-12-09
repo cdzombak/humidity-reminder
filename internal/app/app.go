@@ -42,12 +42,12 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-
 	currentState, err := store.Load()
 	if err != nil {
-		return err
+		// Log the error but proceed with an empty state to recover from corruption
+		log.Printf("warning: could not load previous state (starting fresh): %v", err)
+		currentState = state.State{}
 	}
-
 	changed := currentState.LastRecommendation == nil || *currentState.LastRecommendation != roundedRecommendation
 
 	if changed {
