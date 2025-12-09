@@ -65,15 +65,13 @@ func Run(ctx context.Context, cfg *config.Config) error {
 
 	now := time.Now().UTC()
 	rec := roundedRecommendation
-	saveState := state.State{
-		LastRecommendation: &rec,
-		LastRun:            &now,
-	}
 
-	if err := store.Save(saveState); err != nil {
+	currentState.LastRecommendation = &rec
+	currentState.LastRun = &now
+
+	if err := store.Save(currentState); err != nil {
 		return err
 	}
-
 	return nil
 }
 
