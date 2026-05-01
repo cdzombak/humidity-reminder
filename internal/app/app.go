@@ -130,11 +130,11 @@ func roundDownToNearestFive(value int) int {
 
 func buildEmailBody(newRecommendation int, minLow float64, lows []float64, previous *int) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("The recommended indoor humidity is now %d%%.\n\n", newRecommendation))
-	sb.WriteString(fmt.Sprintf("Minimum overnight low for the next %d nights: %.1f°F.\n", len(lows), minLow))
-	sb.WriteString(fmt.Sprintf("Forecast overnight lows: %s.\n", formatLows(lows)))
+	fmt.Fprintf(&sb, "The recommended indoor humidity is now %d%%.\n\n", newRecommendation)
+	fmt.Fprintf(&sb, "Minimum overnight low for the next %d nights: %.1f°F.\n", len(lows), minLow)
+	fmt.Fprintf(&sb, "Forecast overnight lows: %s.\n", formatLows(lows))
 	if previous != nil {
-		sb.WriteString(fmt.Sprintf("Previous recommendation: %d%%.\n", *previous))
+		fmt.Fprintf(&sb, "Previous recommendation: %d%%.\n", *previous)
 	} else {
 		sb.WriteString("This is the first stored recommendation.\n")
 	}
